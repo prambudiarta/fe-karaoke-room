@@ -1,6 +1,7 @@
 export interface Item {
-  id?: number;
+  id: number;
   category_id: number;
+  category: string;
   imageUrl: string;
   name: string;
   price: number;
@@ -26,7 +27,7 @@ export interface Room {
 }
 
 export interface Order {
-  order_id?: number;
+  id: number;
   room_id: number;
   duration_hours: number;
   start_time: Date;

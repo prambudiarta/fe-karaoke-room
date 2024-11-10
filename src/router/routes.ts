@@ -19,12 +19,12 @@ const routes: RouteRecordRaw[] = [
           {
             path: '',
             name: 'clientCurrentOrder',
-            component: () => import('pages/Client/CurrentOrder.vue'),
+            component: () => import('pages/CurrentOrder.vue'),
           },
           {
             path: 'AddItem',
             name: 'clientAddItem',
-            component: () => import('pages/Client/AddItemToOrder.vue'),
+            component: () => import('pages/AddItemToOrder.vue'),
           },
         ],
       },

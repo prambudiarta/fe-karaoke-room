@@ -7,6 +7,7 @@ const apiUrl = 'http://localhost:3000';
 export const useClientOrderStore = defineStore('clientOrderStore', {
   state: () => ({
     order: null as Order | null,
+    orderItem: [] as OrderItem[],
     items: [] as Item[],
     user: null as User | null,
     room: null as Room | null,
@@ -15,20 +16,26 @@ export const useClientOrderStore = defineStore('clientOrderStore', {
     getOrder(state) {
       return state.order;
     },
+    getOrderItem(state) {
+      return state.orderItem;
+    },
     itemSummary(state) {
       return state.order?.room_total_price; // Using room_total_price as item summary example
     },
     orderId(state) {
-      return state.order?.order_id;
+      return state.order?.id;
     },
     startTime(state) {
       return state.order?.start_time;
     },
+    getItems(state) {
+      return state.items;
+    },
   },
   actions: {
-    async fetchItems() {
+    async fetchOrderItems(orderId: number) {
       try {
-        const response = await axios.get(`${apiUrl}/orders`);
+        const response = await axios.get(`${apiUrl}/orders/${orderId}/items`);
         this.items = response.data.map((itemData: Item) => ({
           id: itemData.id,
           name: itemData.name,
@@ -45,7 +52,7 @@ export const useClientOrderStore = defineStore('clientOrderStore', {
         throw new Error('Order not found');
       }
       try {
-        await axios.put(`${apiUrl}/orders/${this.order.order_id}`, {
+        await axios.put(`${apiUrl}/orders/${this.order.id}`, {
           order: { status: 'completed' },
         });
       } catch (error) {
@@ -54,16 +61,19 @@ export const useClientOrderStore = defineStore('clientOrderStore', {
     },
     async fetchOrder(deviceId: string) {
       try {
-        const response = await axios.get(`${apiUrl}/orders`);
-        const orders = response.data;
-        const order = orders.find(
-          (order: Order) =>
-            order.room_id.toString() === deviceId &&
-            order.status !== 'completed'
-        );
-        this.order = order || null;
+        const response = await axios.get(`${apiUrl}/order/room/${deviceId}`);
+        this.order = response.data;
       } catch (error) {
         console.error('Failed to fetch order:', error);
+      }
+    },
+    async fetchItems() {
+      try {
+        const response = await axios.get(`${apiUrl}/items`);
+        this.items = response.data;
+        return response.data;
+      } catch (error) {
+        console.error('Failed to fetch order item:', error);
       }
     },
     async addItemToOrder(orderItemDetails: OrderItem[]) {
@@ -86,7 +96,7 @@ export const useClientOrderStore = defineStore('clientOrderStore', {
       console.log('itemSummary:', itemSummary);
 
       try {
-        await axios.put(`${apiUrl}/orders/${this.order.order_id}`, {
+        await axios.put(`${apiUrl}/orders/${this.order.id}`, {
           order: { grand_total_price: totalPrices },
         });
         this.order.grand_total_price = totalPrices;
